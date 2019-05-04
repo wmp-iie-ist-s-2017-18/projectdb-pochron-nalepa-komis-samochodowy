@@ -21,19 +21,26 @@ import javax.swing.table.DefaultTableModel;
  */
 public class Cars extends javax.swing.JFrame {
 
-    Connection con;
+    private Connection con;
     /**
      * Creates new form Cars
      */
     public Cars(Connection con) {
         this.con = con;
         initComponents();
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
+
+    public Connection getConnection() {
+        return con;
+    }
+    
     
     public void updateData() {
         try {
             Statement statement = con.createStatement();
             ResultSet rs = statement.executeQuery("select id,miasto,adres from komis;");
+            komisy.removeAllItems();
             while(rs.next()){
                 komisy.addItem(rs.getString("adres"));
             }
@@ -42,6 +49,42 @@ public class Cars extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Błąd SQL: " + ex.getMessage());
         }
         
+        
+    }
+    
+    public void updateTable() {
+        DefaultTableModel model =  (DefaultTableModel) carTable.getModel();
+        model.setRowCount(0);
+        
+        
+        int idKomisu = komisy.getSelectedIndex() + 1;
+        
+        if (idKomisu == -1) 
+            return;
+        
+         try {
+            Statement statement = con.createStatement();
+            ResultSet rs = statement.executeQuery("select * from samochody where komis = " + idKomisu + ";");
+            
+            while(true){
+                boolean x = rs.next();
+                if(x == false)
+                    break;
+                
+                Object table[] = new Object[model.getColumnCount()];
+                table[0] = rs.getString("VIN");
+                table[1] = rs.getString("marka");
+                table[2] = rs.getString("model");
+                table[3] = rs.getInt("rok_produkcji");
+                table[4] = rs.getInt("przebieg");
+                table[5] = rs.getString("kolor");
+                table[6] = rs.getInt("komis");
+                model.addRow(table);
+            }
+            statement.close();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Błąd SQL: " + ex.getMessage());
+        }
         
     }
     
@@ -58,6 +101,7 @@ public class Cars extends javax.swing.JFrame {
         carTable = new javax.swing.JTable();
         komisy = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -94,6 +138,13 @@ public class Cars extends javax.swing.JFrame {
 
         jLabel1.setText("Komis:");
 
+        jButton1.setText("Dodaj");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -103,9 +154,12 @@ public class Cars extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 729, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(komisy, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(komisy, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jButton1))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -117,43 +171,26 @@ public class Cars extends javax.swing.JFrame {
                     .addComponent(jLabel1)
                     .addComponent(komisy, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 376, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton1)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void komisyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_komisyActionPerformed
-        DefaultTableModel model =  (DefaultTableModel) carTable.getModel();
-        model.setRowCount(0);
-        
-        int idKomisu = komisy.getSelectedIndex() + 1;
-         try {
-            Statement statement = con.createStatement();
-            ResultSet rs = statement.executeQuery("select * from samochody where komis = " + idKomisu + ";");
-            
-            while(true){
-                boolean x = rs.next();
-                if(x == false)
-                    break;
-                
-                Object table[] = new Object[model.getColumnCount()];
-                table[0] = rs.getString("VIN");
-                table[1] = rs.getString("marka");
-                table[2] = rs.getString("model");
-                table[3] = rs.getInt("rok_produkcji");
-                table[4] = rs.getInt("przebieg");
-                table[5] = rs.getString("kolor");
-                table[6] = rs.getInt("komis");
-                model.addRow(table);
-            }
-            statement.close();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Błąd SQL: " + ex.getMessage());
-        }
-        
+       updateTable();
+       
     }//GEN-LAST:event_komisyActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        NewCar newCar = new NewCar(this);
+        this.setEnabled(false);
+        newCar.komboKomis.setModel(komisy.getModel());
+        newCar.setVisible(true);
+    }//GEN-LAST:event_jButton1ActionPerformed
 
 //    /**
 //     * @param args the command line arguments
@@ -192,6 +229,7 @@ public class Cars extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTable carTable;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JComboBox komisy;
