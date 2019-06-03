@@ -105,33 +105,33 @@ public class NewCar extends javax.swing.JDialog {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel6)
                             .addComponent(jLabel7))
-                        .addGap(62, 62, 62)
+                        .addGap(92, 92, 92)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(textKolor)
-                            .addComponent(komboKomis, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(komboKomis, 0, 302, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel2)
                             .addComponent(jLabel1))
-                        .addGap(61, 61, 61)
+                        .addGap(91, 91, 91)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(textVin)
-                            .addComponent(textMarka)))
+                            .addComponent(textMarka)
+                            .addComponent(textVin)))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel4)
                             .addComponent(jLabel3))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(textModel, javax.swing.GroupLayout.DEFAULT_SIZE, 291, Short.MAX_VALUE)
+                        .addGap(49, 49, 49)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(textModel)
                             .addComponent(textRok)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jButton1)
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel5)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(textPrzebieg, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(77, 77, 77)
+                        .addComponent(textPrzebieg)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -189,7 +189,7 @@ public class NewCar extends javax.swing.JDialog {
           //insert into samochody (kolor) values ('czarny');
           //String query = "insert into samochody (kolor) values ('" + textKolor.getText() + "');";
            String query = "insert into samochody (VIN, marka, model, rok_produkcji, przebieg, kolor, komis, info) values " +
-                    "(" + textVin.getText() + ", '" + textMarka.getText() + "', '" + textModel.getText() + "', "
+                    "('" + textVin.getText() + "', '" + textMarka.getText() + "', '" + textModel.getText() + "', "
                     + textRok.getText() + ", " + textPrzebieg.getText() + ", '" + textKolor.getText() + "', " + (komboKomis.getSelectedIndex() +1) + ",''); ";
           
            System.out.println(query);

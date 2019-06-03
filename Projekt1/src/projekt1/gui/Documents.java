@@ -6,6 +6,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -15,69 +17,50 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author Wojciech
  */
-public class Cars extends javax.swing.JFrame {
+public class Documents extends javax.swing.JFrame {
 
     private Connection con;
-    int lastSelectedRow = -1;
-    long lastTimeClicked = -1;
+    private final String vin;
+    private Map<Integer, Integer> idMap = new HashMap<Integer, Integer>();
     /**
      * Creates new form Cars
      */
-    public Cars(Connection con) {
+    public Documents(Connection con, String vin, String label) {
         this.con = con;
+        this.vin = vin.toUpperCase();
         initComponents();
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        carLabel.setText(label);
+        vinLabel.setText(vin);
+        updateTable();
     }
 
+   
     public Connection getConnection() {
         return con;
     }
-    
-    
-    public void updateData() {
-        try {
-            Statement statement = con.createStatement();
-            ResultSet rs = statement.executeQuery("select id,miasto,adres from komis;");
-            komisy.removeAllItems();
-            while(rs.next()){
-                komisy.addItem(rs.getString("adres"));
-            }
-            statement.close();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "Błąd SQL: " + ex.getMessage());
-        }
-        
-        
-    }
+
     
     public void updateTable() {
+        
         DefaultTableModel model =  (DefaultTableModel) carTable.getModel();
         model.setRowCount(0);
         
-        
-        int idKomisu = komisy.getSelectedIndex() + 1;
-        
-        if (idKomisu == -1) 
-            return;
-        
-         try {
+        try {
             Statement statement = con.createStatement();
-            ResultSet rs = statement.executeQuery("select * from samochody where komis = " + idKomisu + ";");
-            
+            ResultSet rs = statement.executeQuery("select * from dokumenty where vin = '" + vin + "';");
+            idMap.clear();
+            int row = 0;
             while(true){
                 boolean x = rs.next();
                 if(x == false)
                     break;
                 
                 Object table[] = new Object[model.getColumnCount()];
-                table[0] = rs.getString("VIN");
-                table[1] = rs.getString("marka");
-                table[2] = rs.getString("model");
-                table[3] = rs.getInt("rok_produkcji");
-                table[4] = rs.getInt("przebieg");
-                table[5] = rs.getString("kolor");
-                table[6] = rs.getInt("komis");
+                table[0] = rs.getString("nazwa_dokumentu");
+                idMap.put(row, rs.getInt("id"));
                 model.addRow(table);
+                row++;
             }
             statement.close();
         } catch (SQLException ex) {
@@ -97,11 +80,14 @@ public class Cars extends javax.swing.JFrame {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         carTable = new javax.swing.JTable();
-        komisy = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jSeparator1 = new javax.swing.JSeparator();
+        addButton = new javax.swing.JButton();
+        carLabel = new javax.swing.JLabel();
+        vinLabel = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
         deleteButton = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JSeparator();
+        documentNameText = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -110,14 +96,14 @@ public class Cars extends javax.swing.JFrame {
 
             },
             new String [] {
-                "VIN", "Marka", "Model", "Rok produkcji", "Przebieg", "Kolor", "Komis"
+                "Nazwa Dokumentu"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.String.class, java.lang.Integer.class
+                java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
+                false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -135,28 +121,23 @@ public class Cars extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(carTable);
 
-        komisy.addActionListener(new java.awt.event.ActionListener() {
+        jLabel1.setText("Samochód: ");
+
+        addButton.setText("Dodaj");
+        addButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                komisyActionPerformed(evt);
+                addButtonActionPerformed(evt);
             }
         });
 
-        jLabel1.setText("Komis:");
+        carLabel.setText("jLabel2");
 
-        jButton1.setText("Dodaj");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        vinLabel.setText("jLabel2");
+
+        jLabel2.setText("VIN:");
 
         deleteButton.setText("Usuń");
         deleteButton.setEnabled(false);
-        deleteButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                deleteButtonMouseClicked(evt);
-            }
-        });
         deleteButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 deleteButtonActionPerformed(evt);
@@ -172,15 +153,22 @@ public class Cars extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 729, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(carLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(vinLabel))
+                    .addComponent(jSeparator1)
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(deleteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel1)
+                                .addComponent(addButton, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(komisy, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(deleteButton, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jSeparator1))
+                                .addComponent(documentNameText, javax.swing.GroupLayout.PREFERRED_SIZE, 268, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -189,90 +177,65 @@ public class Cars extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
-                    .addComponent(komisy, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(carLabel)
+                    .addComponent(vinLabel)
+                    .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 296, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 335, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(deleteButton)
-                .addGap(18, 18, 18)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
-                .addComponent(jButton1)
-                .addContainerGap())
+                .addGap(12, 12, 12)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 4, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(addButton)
+                    .addComponent(documentNameText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void komisyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_komisyActionPerformed
-       updateTable();
-       
-    }//GEN-LAST:event_komisyActionPerformed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        NewCar newCar = new NewCar(this);
-        this.setEnabled(false);
-        newCar.komboKomis.setModel(komisy.getModel());
-        newCar.setVisible(true);
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void carTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_carTableMouseClicked
-
-        int row = carTable.getSelectedRow();
-        if (row == -1) {
-            deleteButton.setEnabled(false);
-              return;
-        }
-         deleteButton.setEnabled(true);
-        
-        DefaultTableModel model = (DefaultTableModel) carTable.getModel();
-        String v = (String) model.getValueAt(row, 0);
-        String label = 
-                (String) model.getValueAt(row, 1)
-                + " " + (String) model.getValueAt(row, 2)
-                + " " + model.getValueAt(row, 3).toString();
-        
-            
-        long currentTime = System.currentTimeMillis();
-        if (row != lastSelectedRow) {
-            lastSelectedRow = row;
-            lastTimeClicked = currentTime;
-        } else {
-            long timeDiff = currentTime - lastTimeClicked;
-            lastTimeClicked = currentTime;
-            if (timeDiff < 1000) {                        
-                Documents docs = new Documents(con, v, label);
-                docs.setVisible(true);
-            }
-        }
-        
-
-    }//GEN-LAST:event_carTableMouseClicked
-
-    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_deleteButtonActionPerformed
-
-    private void deleteButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_deleteButtonMouseClicked
-        int row = carTable.getSelectedRow();
-        if (row == -1) {
-            deleteButton.setEnabled(false);
-              return;
-        }
-         deleteButton.setEnabled(true);
-        
-        DefaultTableModel model = (DefaultTableModel) carTable.getModel();
-        String v = (String) model.getValueAt(row, 0);
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
+      
         try {
             Statement statement = con.createStatement();
-            statement.executeUpdate("delete from dokumenty where vin = '" + v + "';");
-            statement.executeUpdate("delete from samochody where vin = '" + v + "';");
+            statement.executeUpdate("insert into dokumenty (vin, nazwa_dokumentu) values ('" 
+                    + vin + "', '" 
+                    + documentNameText.getText() + "');");
             statement.close();
-            updateTable();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "Błąd SQL: " + ex.getMessage());
         }
-    }//GEN-LAST:event_deleteButtonMouseClicked
+        
+       updateTable();
+
+    }//GEN-LAST:event_addButtonActionPerformed
+
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+        int row = carTable.getSelectedRow();
+        int id = idMap.get(row);
+              try {
+            Statement statement = con.createStatement();
+            statement.executeUpdate("delete from dokumenty where id = " + id + ";");
+            statement.close();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Błąd SQL: " + ex.getMessage());
+        }
+        
+              updateTable();
+        
+    }//GEN-LAST:event_deleteButtonActionPerformed
+
+    private void carTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_carTableMouseClicked
+        int row = carTable.getSelectedRow();
+        if (row == -1)  {
+            deleteButton.setEnabled(false);
+            return;
+        }
+        
+        deleteButton.setEnabled(true);
+    }//GEN-LAST:event_carTableMouseClicked
 
 //    /**
 //     * @param args the command line arguments
@@ -310,12 +273,15 @@ public class Cars extends javax.swing.JFrame {
 //    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addButton;
+    private javax.swing.JLabel carLabel;
     private javax.swing.JTable carTable;
     private javax.swing.JButton deleteButton;
-    private javax.swing.JButton jButton1;
+    private javax.swing.JTextField documentNameText;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JComboBox komisy;
+    private javax.swing.JLabel vinLabel;
     // End of variables declaration//GEN-END:variables
 }
