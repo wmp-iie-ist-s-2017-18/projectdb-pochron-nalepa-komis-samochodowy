@@ -179,21 +179,25 @@ public class NewCar extends javax.swing.JDialog {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         Connection con = cars.getConnection();
-        try {
+
+            try (Statement statement = con.createStatement()) {
+                if (!checkVinInDatabase(textVin.getText())) {
+                    JOptionPane.showMessageDialog(null, "Nieprawidłowy VIN!");
+                    return;
+                }
+                
+                //String asd = "asdads";
+                //asd = "asdasd " + textKolor.getText();
+                //"asdasd czerwony"
+                //insert into samochody (kolor) values ('czarny');
+                //String query = "insert into samochody (kolor) values ('" + textKolor.getText() + "');";
+                String query = "insert into samochody (VIN, marka, model, rok_produkcji, przebieg, kolor, komis, info) values " +
+                        "('" + textVin.getText() + "', '" + textMarka.getText() + "', '" + textModel.getText() + "', "
+                        + textRok.getText() + ", " + textPrzebieg.getText() + ", '" + textKolor.getText() + "', " + (komboKomis.getSelectedIndex() +1) + ",''); ";
+                
+                System.out.println(query);
+                int rows = statement.executeUpdate(query);
             
-          Statement statement = con.createStatement();
-          
-          //String asd = "asdads";
-          //asd = "asdasd " + textKolor.getText();
-          //"asdasd czerwony"
-          //insert into samochody (kolor) values ('czarny');
-          //String query = "insert into samochody (kolor) values ('" + textKolor.getText() + "');";
-           String query = "insert into samochody (VIN, marka, model, rok_produkcji, przebieg, kolor, komis, info) values " +
-                    "('" + textVin.getText() + "', '" + textMarka.getText() + "', '" + textModel.getText() + "', "
-                    + textRok.getText() + ", " + textPrzebieg.getText() + ", '" + textKolor.getText() + "', " + (komboKomis.getSelectedIndex() +1) + ",''); ";
-          
-           System.out.println(query);
-          int rows = statement.executeUpdate(query);
           this.dispose();
           
         } catch (SQLException ex) {
@@ -202,6 +206,17 @@ public class NewCar extends javax.swing.JDialog {
         
     }//GEN-LAST:event_jButton1ActionPerformed
     
+    private boolean checkVinInDatabase(String vin) throws SQLException {
+        Connection con = cars.getConnection();
+        
+        try (Statement statement = con.createStatement()) {
+            ResultSet res = statement.executeQuery("select check_vin('" + vin + "');");
+            res.next();
+            boolean vinOk = res.getBoolean("check_vin");
+            res.close();
+            return vinOk;
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
